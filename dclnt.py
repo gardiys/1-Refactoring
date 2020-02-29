@@ -17,9 +17,6 @@ def is_verb(word):
     return pos_info[0][1] == 'VB'
 
 
-Path = ''
-
-
 def get_trees(path, with_filenames=False, with_file_content=False):
     trees = []
     filenames = get_filenames(path)
@@ -81,7 +78,17 @@ def get_top_verbs_in_path(path, top_size=10):
 
 def get_top_functions_names_in_path(path, top_size=10):
     t = get_trees(path)
-    nms = [f for f in flat([[node.name.lower() for node in ast.walk(t) if isinstance(node, ast.FunctionDef)] for t in t]) if not (f.startswith('__') and f.endswith('__'))]
+    nms = []
+    temp = []
+    for t in t:
+        nodes = []
+        for node in ast.walk(t):
+            if isinstance(node, ast.FunctionDef):
+                nodes.append(node.name.lower())
+        temp.append(nodes)
+    for f in flat(temp):
+        if not (f.startswith('__') and f.endswith('__')):
+            nms.append(f)
     return collections.Counter(nms).most_common(top_size)
 
 

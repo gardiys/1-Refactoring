@@ -4,6 +4,7 @@ import dclnt
 
 class TestFileMethods(unittest.TestCase):
 
+
     def test_flat(self):
         actual = dclnt.flat([(1, 2), (3, 4)])
         expected = [1, 2, 3, 4]
@@ -61,7 +62,15 @@ class TestFileMethods(unittest.TestCase):
         pass
 
     def test_get_top_function_names_in_path(self):
-        pass
+        path = r"./django"
+        expected = [('setup', 292), ('setuptestdata', 251),
+                    ('teardown', 99), ('as_sql', 91),
+                    ('deconstruct', 71), ('render', 66),
+                    ('get_queryset', 59), ('to_python', 56),
+                    ('clean', 55), ('handle', 55)]
+        actual = dclnt.get_top_functions_names_in_path(path)
+
+        self.assertEqual(expected, actual)
 
 
 
