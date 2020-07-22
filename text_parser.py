@@ -1,6 +1,7 @@
 import ast
 import os
 import collections
+import git
 
 from nltk import pos_tag
 
@@ -17,9 +18,19 @@ def is_verb(word):
     return pos_info[0][1] == 'VB'
 
 
-def get_trees(path, with_filenames=False, with_file_content=False):
-    trees = []
+def get_trees(path):
+
     filenames = get_filenames(path)
+
+    trees = get_trees_by_filenames(filenames)
+
+    print('trees generated')
+
+    return [t for t in trees if t]
+
+
+def get_trees_by_filenames(filenames):
+    trees = []
     for filename in filenames:
         with open(filename, 'r', encoding='utf-8') as attempt_handler:
             main_file_content = attempt_handler.read()
@@ -28,26 +39,15 @@ def get_trees(path, with_filenames=False, with_file_content=False):
         except SyntaxError as e:
             print(e)
             tree = None
-        if with_filenames:
-            if with_file_content:
-                trees.append((filename, main_file_content, tree))
-            else:
-                trees.append((filename, tree))
-        else:
-            trees.append(tree)
-    print('trees generated')
-
-    return [t for t in trees if t]
+        trees.append(tree)
+    return trees
 
 
 def get_filenames(path):
     filenames = []
     for dirname, dirs, files in os.walk(path, topdown=True):
-        for file in files:
-            if file.endswith('.py'):
-                filenames.append(os.path.join(dirname, file))
-                if len(filenames) == 100:
-                    break
+        for file in [i for i in files if i.endswith('.py')][:100]:
+            filenames.append(os.path.join(dirname, file))
     print('total %s files' % len(filenames))
     return filenames
 
@@ -107,8 +107,12 @@ def get_all_functions(trees):
     return nms
 
 
-if __name__ == "__main__":
-    wds = []
+def clone_git(url):
+    git.Git(os.curdir).clone(url)
+
+
+def main():
+    words = []
     projects = [
         'django',
         'flask',
@@ -119,9 +123,13 @@ if __name__ == "__main__":
     ]
     for project in projects:
         path = os.path.join('.', project)
-        wds += get_top_verbs_in_path(path)
+        words += get_top_verbs_in_path(path)
 
     top_size = 200
-    print('total %s words, %s unique' % (len(wds), len(set(wds))))
-    for word, occurence in to_count(wds, top_size):
+    print('total %s words, %s unique' % (len(words), len(set(words))))
+    for word, occurence in to_count(words, top_size):
         print(word, occurence)
+
+
+if __name__ == "__main__":
+    main()
